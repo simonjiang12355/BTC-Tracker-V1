@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BTC Tracker</title>
+    <meta
+      name="description"
+      content="A compact Bitcoin dashboard with price, market data, on-chain valuation, and Fear & Greed."
+    />
+    <meta property="og:title" content="BTC Tracker" />
+    <meta
+      property="og:description"
+      content="Track Bitcoin price, market data, on-chain valuation, and sentiment."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://assets.coingecko.com/coins/images/1/large/bitcoin.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="BTC Tracker" />
+    <meta
+      name="twitter:description"
+      content="Bitcoin price, market data, on-chain valuation, and sentiment."
+    />
+    <link rel="preconnect" href="https://api.coingecko.com" />
+    <link rel="preconnect" href="https://community-api.coinmetrics.io" />
+    <link rel="preconnect" href="https://api.alternative.me" />
+    <link rel="preconnect" href="https://assets.coingecko.com" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="topbar" aria-labelledby="page-title">
+        <div class="identity">
+          <img
+            class="coin-logo"
+            src="https://assets.coingecko.com/coins/images/1/large/bitcoin.png"
+            alt="Bitcoin logo"
+            width="64"
+            height="64"
+          />
+          <div>
+            <p class="eyebrow">Bitcoin basics</p>
+            <h1 id="page-title">BTC Tracker</h1>
+          </div>
+        </div>
+        <div class="actions">
+          <label class="currency-picker" for="currency">
+            <span>计价</span>
+            <select id="currency" name="currency">
+              <option value="usd" selected>USD</option>
+              <option value="cny">CNY</option>
+            </select>
+          </label>
+          <button id="refresh" type="button">刷新</button>
+          <button id="share" class="secondary-button" type="button">分享</button>
+        </div>
+      </section>
+
+      <section class="share-strip" aria-label="分享 BTC tracker">
+        <div>
+          <p class="eyebrow">Shareable tracker</p>
+          <p>分享这个页面，别人打开后会看到同一套实时 BTC tracker。</p>
+        </div>
+        <span id="share-status">部署到公网后即可复制分享链接。</span>
+      </section>
+
+      <section class="price-band" aria-live="polite">
+        <div>
+          <p class="label">现价</p>
+          <div class="price-row">
+            <strong id="price">--</strong>
+            <span id="change-24h" class="pill neutral">--</span>
+          </div>
+          <p id="last-updated" class="muted">等待数据...</p>
+        </div>
+      </section>
+
+      <section class="compact-row" aria-label="BTC 核心指标">
+        <article class="panel compact-panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Market</p>
+              <h2>市场概览</h2>
+            </div>
+          </div>
+          <dl class="compact-list">
+            <div>
+              <dt>市值</dt>
+              <dd id="market-cap">--</dd>
+            </div>
+            <div>
+              <dt>24h 成交量</dt>
+              <dd id="volume">--</dd>
+            </div>
+            <div>
+              <dt>24h 高点</dt>
+              <dd id="high-24h">--</dd>
+            </div>
+            <div>
+              <dt>24h 低点</dt>
+              <dd id="low-24h">--</dd>
+            </div>
+          </dl>
+        </article>
+
+        <article class="panel compact-panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Change</p>
+              <h2>价格变化</h2>
+            </div>
+          </div>
+          <dl class="compact-list change-list">
+            <div>
+              <dt>1h</dt>
+              <dd id="change-1h">--</dd>
+            </div>
+            <div>
+              <dt>24h</dt>
+              <dd id="change-card-24h">--</dd>
+            </div>
+            <div>
+              <dt>7d</dt>
+              <dd id="change-7d">--</dd>
+            </div>
+            <div>
+              <dt>30d</dt>
+              <dd id="change-30d">--</dd>
+            </div>
+          </dl>
+        </article>
+      </section>
+
+      <section class="workspace">
+        <article class="panel chart-panel">
+          <div class="section-head">
+            <div>
+              <p id="chart-range-label" class="eyebrow">7 days</p>
+              <h2>价格走势</h2>
+            </div>
+            <span id="trend-label" class="trend-label">--</span>
+          </div>
+          <div class="range-tabs" aria-label="选择价格走势时间范围">
+            <button class="range-tab" type="button" data-days="1">1天</button>
+            <button class="range-tab active" type="button" data-days="7">7天</button>
+            <button class="range-tab" type="button" data-days="30">30天</button>
+            <button class="range-tab" type="button" data-days="60">60天</button>
+            <button class="range-tab" type="button" data-days="90">90天</button>
+            <button class="range-tab" type="button" data-days="180">180天</button>
+            <button class="range-tab" type="button" data-days="365">1年</button>
+            <button class="range-tab" type="button" data-days="730">2年</button>
+            <button class="range-tab" type="button" data-days="1825">5年</button>
+          </div>
+          <div class="chart-frame">
+            <canvas id="sparkline" width="960" height="360" aria-label="BTC 价格走势图"></canvas>
+            <div id="chart-tooltip" class="chart-tooltip" hidden></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="grid history" aria-label="历史价格">
+        <article class="metric">
+          <span>历史高点</span>
+          <strong id="ath">--</strong>
+          <small id="ath-date">--</small>
+          <small id="ath-days">--</small>
+        </article>
+        <article class="metric">
+          <span>距历史高点</span>
+          <strong id="ath-change">--</strong>
+        </article>
+      </section>
+
+      <section class="indicator-section" aria-labelledby="onchain-title">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">On-chain valuation</p>
+            <h2 id="onchain-title">链上估值指标</h2>
+          </div>
+          <span id="onchain-updated" class="trend-label">等待数据...</span>
+        </div>
+        <div class="grid indicators">
+          <article class="metric indicator-card">
+            <button class="info-link" type="button" data-info="nupl">NUPL</button>
+            <strong id="nupl">--</strong>
+            <div id="nupl-axis" class="indicator-axis" aria-label="NUPL 数轴"></div>
+          </article>
+          <article class="metric indicator-card">
+            <button class="info-link" type="button" data-info="puell">Puell Multiple</button>
+            <strong id="puell">--</strong>
+            <div id="puell-axis" class="indicator-axis" aria-label="Puell Multiple 数轴"></div>
+          </article>
+          <article class="metric indicator-card">
+            <button class="info-link" type="button" data-info="mvrv">MVRV Ratio</button>
+            <strong id="mvrv">--</strong>
+            <div id="mvrv-axis" class="indicator-axis" aria-label="MVRV Ratio 数轴"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="sentiment-section" aria-labelledby="sentiment-title">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Sentiment</p>
+            <h2 id="sentiment-title">市场情绪</h2>
+          </div>
+          <span class="trend-label">
+            <a href="https://charts.bitbo.io/fear-greed/" target="_blank" rel="noreferrer">Fear & Greed</a>
+          </span>
+        </div>
+        <div class="sentiment-grid">
+          <article class="metric sentiment-card">
+            <span>Bitcoin Fear & Greed Index</span>
+            <strong id="fear-greed-value">--</strong>
+            <div class="meter" aria-hidden="true">
+              <span id="fear-greed-meter"></span>
+            </div>
+            <div class="fear-greed-scale" aria-hidden="true">
+              <div class="fear-greed-stop">
+                <strong>0</strong>
+                <small class="fear-label fear-extreme-fear">Extreme Fear</small>
+              </div>
+              <div class="fear-greed-stop">
+                <strong>25</strong>
+                <small class="fear-label fear-fear">Fear</small>
+              </div>
+              <div class="fear-greed-stop">
+                <strong>50</strong>
+                <small class="fear-label fear-neutral">Neutral</small>
+              </div>
+              <div class="fear-greed-stop">
+                <strong>75</strong>
+                <small class="fear-label fear-greed">Greed</small>
+              </div>
+              <div class="fear-greed-stop">
+                <strong>100</strong>
+                <small class="fear-label fear-extreme-greed">Extreme Greed</small>
+              </div>
+            </div>
+            <small id="fear-greed-label">等待数据...</small>
+            <small id="fear-greed-date">Alternative.me</small>
+          </article>
+        </div>
+      </section>
+
+      <section class="power-law-section" aria-labelledby="power-law-title">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Long term model</p>
+            <h2 id="power-law-title">Bitcoin Long Term Power Law</h2>
+          </div>
+          <span class="trend-label">
+            <a href="https://charts.bitbo.io/long-term-power-law/" target="_blank" rel="noreferrer">Bitbo 原图</a>
+          </span>
+        </div>
+        <article class="panel power-law-summary-panel" aria-label="今日 Power Law 读数">
+          <div class="power-law-summary-grid">
+            <div class="power-law-summary-item">
+              <span>Price End of Day</span>
+              <strong id="power-law-price">--</strong>
+              <small id="power-law-price-date">--</small>
+            </div>
+            <div class="power-law-summary-item">
+              <span>Resistance</span>
+              <strong id="power-law-resistance">--</strong>
+              <small id="power-law-model-date">--</small>
+            </div>
+            <div class="power-law-summary-item">
+              <span>Linear Regression Fit</span>
+              <strong id="power-law-fit">--</strong>
+              <small>Power law model</small>
+            </div>
+            <div class="power-law-summary-item">
+              <span>Support</span>
+              <strong id="power-law-support">--</strong>
+              <small>Power law model</small>
+            </div>
+          </div>
+        </article>
+        <div class="power-law-frame">
+          <canvas
+            id="power-law-chart"
+            width="1280"
+            height="560"
+            aria-label="Bitcoin Long Term Power Law chart"
+          ></canvas>
+          <div id="power-law-tooltip" class="power-law-tooltip" hidden></div>
+        </div>
+        <p id="power-law-status" class="muted">正在加载 long term power law 数据...</p>
+      </section>
+
+      <section class="recommendation-section" aria-labelledby="recommendation-title">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Composite view</p>
+            <h2 id="recommendation-title">综合评价</h2>
+          </div>
+          <div class="recommendation-confidence-wrap">
+            <span
+              id="recommendation-confidence"
+              class="trend-label confidence-trigger"
+              tabindex="0"
+            >Confidence: --</span>
+            <div class="confidence-tooltip" role="tooltip">
+              Confidence Level 表示当前 dashboard 内多个信号彼此是否一致。分数越高，说明价格、链上、情绪和 power law 给出的方向越同向；它不是收益保证，也不是未来上涨或下跌的概率。
+            </div>
+          </div>
+        </div>
+        <article class="panel recommendation-panel">
+          <div class="recommendation-topline">
+            <strong id="recommendation-action">HOLD</strong>
+            <span id="recommendation-badge" class="pill neutral">Heuristic</span>
+          </div>
+          <p id="recommendation-summary" class="recommendation-summary">
+            等待价格、链上、情绪和 power law 数据汇总...
+          </p>
+          <p class="recommendation-note">
+            这是基于当前仪表盘数据的启发式判断，不构成投资建议。
+          </p>
+        </article>
+      </section>
+
+      <section class="search-section" aria-labelledby="search-title">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Web search</p>
+            <h2 id="search-title">近一个月 BTC 价格预测</h2>
+          </div>
+          <span class="trend-label">截至 2026/04/21</span>
+        </div>
+        <article class="panel search-panel">
+          <p class="search-note">
+            以下内容基于最近一个月公开网页报道整理而成，覆盖至少 5 个不同来源；每条都压缩为一句话，方便快速对比市场观点。
+          </p>
+          <ul class="search-bullets">
+            <li>
+              <a href="https://www.forbes.com/sites/digital-assets/2026/04/17/banks-are-coming-wall-street-bitcoin-rush-targets-189k/" target="_blank" rel="noreferrer">2026/04/17 · Forbes</a>
+              Citi 的 bull case 指向约 <strong>$189K</strong>，逻辑是银行托管、ETF 产品化和机构资金通道继续扩张。
+              <span class="forecast-tag forecast-bullish">Bullish</span>
+            </li>
+            <li>
+              <a href="https://www.forbes.com/sites/digital-assets/2026/04/06/bursting-bubble-bloomberg-warns-bitcoin-suddenly-faces-10000-crash/" target="_blank" rel="noreferrer">2026/04/06 · Forbes</a>
+              Bloomberg Intelligence 的 Mike McGlone 给出最悲观情景，认为泡沫出清时 BTC 甚至可能跌向 <strong>$10K</strong>。
+              <span class="forecast-tag forecast-bearish">Bearish</span>
+            </li>
+            <li>
+              <a href="https://cointelegraph.com/markets/bitcoin-price-surfs-us-pce-inflation-data-shifts-wartime-cpi" target="_blank" rel="noreferrer">2026/04/09 · Cointelegraph</a>
+              一位交易员在 PCE 数据后维持 <strong>$80K</strong> 目标不变，认为宏观扰动未破坏上行路径。
+              <span class="forecast-tag forecast-bullish">Bullish</span>
+            </li>
+            <li>
+              <a href="https://cointelegraph.com/markets/bitcoin-analysis-sees-55k-btc-price-iron-bottom-by-december-2026/" target="_blank" rel="noreferrer">2026/04/10 · Cointelegraph</a>
+              CryptoQuant 的推演则偏空，认为 2026 年下半年更可能先探出约 <strong>$55K</strong> 的“iron bottom”。
+              <span class="forecast-tag forecast-bearish">Bearish</span>
+            </li>
+            <li>
+              <a href="https://cointelegraph.com/news/bitcoin-price-chart-targets-90k-aggressively-buy-on-binance" target="_blank" rel="noreferrer">2026/04/21 · Cointelegraph</a>
+              一组短线技术指标认为只要多头延续主动买盘，BTC 有望上看约 <strong>$90K</strong>。
+              <span class="forecast-tag forecast-bullish">Bullish</span>
+            </li>
+            <li>
+              <a href="https://www.benzinga.com/crypto/cryptocurrency/26/04/51921688/bitcoin-could-run-to-95000-or-crash-to-70000-heres-what-technical-analysis-says/" target="_blank" rel="noreferrer">2026/04/20 · Benzinga</a>
+              DonAlt 的条件判断是守住关键位则上看 <strong>$95K</strong>，失守则可能回落到 <strong>$70K</strong>。
+              <span class="forecast-tag forecast-neutral">Neutral</span>
+            </li>
+            <li>
+              <a href="https://www.benzinga.com/crypto/cryptocurrency/26/03/51518339/bitcoin-next-stop-80k-or-60k-bitwise-analysts-just-made-their-bet/" target="_blank" rel="noreferrer">2026/03/27 · Benzinga</a>
+              Bitwise 两位分析师更倾向 BTC 先到 <strong>$80K</strong> 再到 <strong>$60K</strong>，因为后者需要更剧烈的负面连锁事件。
+              <span class="forecast-tag forecast-bullish">Bullish</span>
+            </li>
+            <li>
+              <a href="https://decrypt.co/364423/bitcoin-etfs-draw-411m-after-btc-hits-75k-but-analysts-urge-caution/" target="_blank" rel="noreferrer">2026/04/15 · Decrypt</a>
+              Decrypt 采访到的分析师认为 BTC 反弹到 <strong>$75K+</strong> 虽然受流动性改善推动，但市场结构仍然“偏弱且不稳定”。
+              <span class="forecast-tag forecast-neutral">Neutral</span>
+            </li>
+            <li>
+              <a href="https://decrypt.co/362696/bitcoin-etfs-bleed-290m-as-risk-off-mood-deepens" target="_blank" rel="noreferrer">2026/03/30 · Decrypt</a>
+              随着 ETF 再现大额流出，Decrypt 引述的观点偏向谨慎，认为地缘与宏观风险可能继续压制 BTC 估值。
+              <span class="forecast-tag forecast-bearish">Bearish</span>
+            </li>
+            <li>
+              <a href="https://www.theblock.co/post/397874/bitcoin-outlook-still-clouded-by-extreme-fear-amid-macro-uncertainty-and-profit-taking-despite-rally-to-76k-analysts-say" target="_blank" rel="noreferrer">2026/04/17 · The Block</a>
+              The Block 汇总的分析师意见是：即便 BTC 回到 <strong>$76K</strong> 附近，市场前景依然被“extreme fear”和获利了结压着。
+              <span class="forecast-tag forecast-neutral">Neutral</span>
+            </li>
+            <li>
+              <a href="https://www.investing.com/analysis/bitcoin-price-tests-74k-after-8day-rally-and-28b-etf-inflows-200676727" target="_blank" rel="noreferrer">2026/03/下旬 · Investing.com</a>
+              Investing.com 的技术分析把 BTC 视为战术性买入，认为若突破关键位，路线可延伸到 <strong>$80K - $84K</strong>。
+              <span class="forecast-tag forecast-bullish">Bullish</span>
+            </li>
+          </ul>
+        </article>
+      </section>
+
+      <p id="status" class="status" role="status">数据来自 CoinGecko 公开 API。</p>
+    </main>
+
+    <script src="./indicator-ui.js"></script>
+    <script src="./power-law.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
