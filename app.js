@@ -92,6 +92,8 @@ const els = {
   recommendationBadge: document.querySelector("#recommendation-badge"),
   recommendationSummary: document.querySelector("#recommendation-summary"),
   recommendationConfidence: document.querySelector("#recommendation-confidence"),
+  forecastUpdated: document.querySelector("#forecast-updated"),
+  forecastList: document.querySelector("#forecast-list"),
 };
 
 const currencyMeta = {
@@ -1038,9 +1040,9 @@ function drawChart(series) {
     bottom: height - padding.bottom,
   };
 
-  ctx.strokeStyle = "#d9e1dd";
+  ctx.strokeStyle = "rgba(57, 255, 90, 0.22)";
   ctx.lineWidth = 1;
-  ctx.fillStyle = "#65716d";
+  ctx.fillStyle = "#89b48f";
   ctx.font = "700 12px Inter, system-ui, sans-serif";
 
   for (let i = 0; i <= 4; i += 1) {
@@ -1063,8 +1065,8 @@ function drawChart(series) {
   state.chartCoords = coords;
 
   const gradient = ctx.createLinearGradient(0, padding.top, 0, height - padding.bottom);
-  gradient.addColorStop(0, rising ? "rgba(18, 161, 130, 0.28)" : "rgba(217, 75, 86, 0.24)");
-  gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+  gradient.addColorStop(0, rising ? "rgba(57, 255, 90, 0.28)" : "rgba(255, 79, 46, 0.24)");
+  gradient.addColorStop(1, "rgba(7, 10, 7, 0)");
 
   ctx.beginPath();
   coords.forEach(([x, y], index) => {
@@ -1082,7 +1084,7 @@ function drawChart(series) {
     if (index === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   });
-  ctx.strokeStyle = rising ? "#12a182" : "#d94b56";
+  ctx.strokeStyle = rising ? "#39ff5a" : "#ff4f2e";
   ctx.lineWidth = 3;
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
@@ -1091,7 +1093,7 @@ function drawChart(series) {
   const [lastX, lastY] = coords[coords.length - 1];
   ctx.beginPath();
   ctx.arc(lastX, lastY, 5, 0, Math.PI * 2);
-  ctx.fillStyle = rising ? "#087c65" : "#d94b56";
+  ctx.fillStyle = rising ? "#22e84e" : "#ff4f2e";
   ctx.fill();
 
   if (Number.isInteger(state.hoverIndex) && coords[state.hoverIndex]) {
@@ -1099,16 +1101,16 @@ function drawChart(series) {
     ctx.beginPath();
     ctx.moveTo(hoverX, padding.top);
     ctx.lineTo(hoverX, height - padding.bottom);
-    ctx.strokeStyle = "rgba(21, 23, 23, 0.28)";
+    ctx.strokeStyle = "rgba(255, 122, 26, 0.42)";
     ctx.lineWidth = 1;
     ctx.stroke();
 
     ctx.beginPath();
     ctx.arc(hoverX, hoverY, 6, 0, Math.PI * 2);
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = "#071009";
     ctx.fill();
     ctx.lineWidth = 3;
-    ctx.strokeStyle = rising ? "#087c65" : "#d94b56";
+    ctx.strokeStyle = rising ? "#22e84e" : "#ff4f2e";
     ctx.stroke();
   }
 }
@@ -1116,7 +1118,7 @@ function drawChart(series) {
 function drawEmptyChart() {
   const { ctx, width, height } = setupCanvas();
   ctx.clearRect(0, 0, width, height);
-  ctx.fillStyle = "#65716d";
+  ctx.fillStyle = "#89b48f";
   ctx.font = "800 16px Inter, system-ui, sans-serif";
   ctx.textAlign = "center";
   ctx.fillText("暂无走势图数据", width / 2, height / 2);
@@ -1130,8 +1132,8 @@ function drawXAxis(ctx, series, padding, width, height) {
   const chartWidth = right - padding.left;
 
   ctx.save();
-  ctx.strokeStyle = "#d9e1dd";
-  ctx.fillStyle = "#65716d";
+  ctx.strokeStyle = "rgba(57, 255, 90, 0.22)";
+  ctx.fillStyle = "#89b48f";
   ctx.font = "700 11px Inter, system-ui, sans-serif";
   ctx.textBaseline = "top";
 
@@ -1355,9 +1357,67 @@ function renderRecommendation() {
     : "数据还不完整，当前更适合先持有并继续观察。";
 }
 
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  })[char]);
+}
+
+function formatForecastDate(value) {
+  if (!value) return "Unknown date";
+  return String(value).replaceAll("-", "/");
+}
+
+function renderForecasts(payload) {
+  const forecasts = Array.isArray(payload?.forecasts) ? payload.forecasts.slice(0, 10) : [];
+  els.forecastUpdated.textContent = payload?.updatedAt
+    ? `每日刷新：${dateTime(payload.updatedAt)}`
+    : "每日刷新：等待数据";
+
+  if (!forecasts.length) {
+    els.forecastList.innerHTML = "<li>暂时没有抓取到新的 BTC 价格预测。</li>";
+    return;
+  }
+
+  els.forecastList.innerHTML = forecasts.map((item) => {
+    const stance = ["bullish", "neutral", "bearish"].includes(item.stance)
+      ? item.stance
+      : "neutral";
+    const label = stance.charAt(0).toUpperCase() + stance.slice(1);
+    return `
+      <li>
+        <a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">
+          ${escapeHtml(formatForecastDate(item.date))} · ${escapeHtml(item.source || "Source")}
+        </a>
+        ${escapeHtml(item.summary || item.title || "BTC price prediction")}
+        <span class="forecast-tag forecast-${stance}">${label}</span>
+      </li>
+    `;
+  }).join("");
+}
+
+async function loadForecasts() {
+  try {
+    const response = await fetch(`./forecasts.json?ts=${Date.now()}`, {
+      headers: { accept: "application/json" },
+      cache: "no-store",
+    });
+    if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+    renderForecasts(await response.json());
+  } catch (error) {
+    els.forecastUpdated.textContent = "每日刷新：暂不可用";
+    els.forecastList.innerHTML = `<li>最新预测加载失败：${escapeHtml(error.message)}</li>`;
+  }
+}
+
 function refreshDashboard() {
   loadBitcoin();
   window.BtcPowerLaw.load();
+  loadForecasts();
 }
 
 window.BtcIndicatorUI.initialize({
@@ -1405,4 +1465,5 @@ window.addEventListener("btc-power-law-updated", renderRecommendation);
 
 loadBitcoin();
 window.BtcPowerLaw.load();
+loadForecasts();
 state.timer = window.setInterval(loadBitcoin, REFRESH_MS);

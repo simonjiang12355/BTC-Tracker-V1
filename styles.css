@@ -1,15 +1,16 @@
 :root {
-  color-scheme: light;
-  --bg: #f6f8f7;
-  --ink: #151717;
-  --muted: #65716d;
-  --line: #d9e1dd;
-  --panel: #ffffff;
-  --accent: #12a182;
-  --accent-strong: #087c65;
-  --danger: #d94b56;
-  --warning: #f7931a;
-  --shadow: 0 18px 46px rgba(24, 40, 35, 0.11);
+  color-scheme: dark;
+  --bg: #070a07;
+  --ink: #eaffda;
+  --muted: #8bb991;
+  --line: rgba(57, 255, 90, 0.42);
+  --panel: rgba(8, 17, 11, 0.92);
+  --accent: #39ff5a;
+  --accent-strong: #22e84e;
+  --danger: #ff4f2e;
+  --warning: #ff7a1a;
+  --orange: #ff6b1a;
+  --shadow: 0 0 0 1px rgba(57, 255, 90, 0.16), 0 20px 48px rgba(0, 0, 0, 0.62), 0 0 34px rgba(57, 255, 90, 0.12);
 }
 
 * {
@@ -20,11 +21,16 @@ body {
   margin: 0;
   min-width: 320px;
   background:
-    linear-gradient(180deg, rgba(18, 161, 130, 0.12), transparent 320px),
+    linear-gradient(90deg, rgba(57, 255, 90, 0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(57, 255, 90, 0.08) 1px, transparent 1px),
+    radial-gradient(circle at 18% 0%, rgba(255, 107, 26, 0.2), transparent 34%),
+    radial-gradient(circle at 92% 12%, rgba(57, 255, 90, 0.14), transparent 32%),
+    linear-gradient(180deg, #10140d 0%, #050706 100%),
     var(--bg);
+  background-size: 36px 36px, 36px 36px, auto, auto, auto;
   color: var(--ink);
   font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Rajdhani", "Orbitron", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
 }
 
@@ -957,4 +963,224 @@ canvas {
   .power-law-summary-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Cyberpunk skin */
+.shell {
+  position: relative;
+}
+
+.shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.025) 0,
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 1px,
+      transparent 5px
+    );
+  pointer-events: none;
+}
+
+.coin-logo {
+  border-color: rgba(255, 107, 26, 0.9);
+  background: #120d08;
+  box-shadow: 0 0 24px rgba(255, 107, 26, 0.46);
+}
+
+h1 {
+  color: var(--warning);
+  text-shadow: 0 0 18px rgba(255, 107, 26, 0.58), 2px 0 0 rgba(57, 255, 90, 0.42);
+}
+
+h2 {
+  color: var(--ink);
+  text-shadow: 0 0 12px rgba(57, 255, 90, 0.22);
+}
+
+.eyebrow,
+.label,
+.metric span,
+.compact-list dt {
+  color: var(--accent);
+}
+
+.metric,
+.panel,
+.share-strip,
+.currency-picker {
+  border-color: var(--line);
+  background:
+    linear-gradient(135deg, rgba(57, 255, 90, 0.08), transparent 28%),
+    linear-gradient(315deg, rgba(255, 107, 26, 0.08), transparent 30%),
+    var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.share-strip p,
+.compact-list dd,
+.metric strong,
+.power-law-summary-item strong,
+.recommendation-summary,
+.search-bullets li {
+  color: var(--ink);
+}
+
+a,
+.info-link {
+  color: var(--accent);
+  text-shadow: 0 0 12px rgba(57, 255, 90, 0.22);
+}
+
+button {
+  border: 1px solid rgba(255, 107, 26, 0.85);
+  background: rgba(255, 107, 26, 0.14);
+  color: var(--warning);
+  box-shadow: inset 0 0 16px rgba(255, 107, 26, 0.12), 0 0 16px rgba(255, 107, 26, 0.18);
+}
+
+button.secondary-button,
+.range-tab {
+  border-color: rgba(57, 255, 90, 0.72);
+  background: rgba(57, 255, 90, 0.08);
+  color: var(--accent);
+}
+
+button:hover,
+.range-tab:hover {
+  box-shadow: 0 0 20px rgba(57, 255, 90, 0.24);
+}
+
+select {
+  color: var(--accent);
+}
+
+select option {
+  background: #080b08;
+  color: var(--accent);
+}
+
+.price-band {
+  border-top-color: rgba(57, 255, 90, 0.4);
+  border-bottom-color: rgba(255, 107, 26, 0.48);
+}
+
+#price {
+  color: var(--accent);
+  text-shadow: 0 0 24px rgba(57, 255, 90, 0.52), 2px 0 0 rgba(255, 107, 26, 0.36);
+}
+
+.up {
+  background: rgba(57, 255, 90, 0.14);
+  color: var(--accent);
+}
+
+.down {
+  background: rgba(255, 79, 46, 0.16);
+  color: var(--danger);
+}
+
+.neutral {
+  background: rgba(255, 122, 26, 0.16);
+  color: var(--warning);
+}
+
+.compact-list {
+  border-color: rgba(57, 255, 90, 0.42);
+  background: rgba(57, 255, 90, 0.42);
+}
+
+.compact-list div {
+  background: rgba(6, 14, 9, 0.96);
+}
+
+.range-tab.active {
+  border-color: var(--warning);
+  background: rgba(255, 107, 26, 0.18);
+  color: var(--warning);
+  box-shadow: 0 0 18px rgba(255, 107, 26, 0.28);
+}
+
+.indicator-section,
+.sentiment-section,
+.power-law-section,
+.recommendation-section,
+.search-section {
+  border-top-color: rgba(57, 255, 90, 0.28);
+}
+
+.chart-tooltip,
+.info-tooltip,
+.axis-tooltip,
+.confidence-tooltip,
+.power-law-tooltip {
+  border-color: rgba(57, 255, 90, 0.56);
+  background: rgba(7, 13, 8, 0.98);
+  box-shadow: 0 0 28px rgba(57, 255, 90, 0.2);
+  color: var(--ink);
+}
+
+.power-law-tooltip {
+  border-color: rgba(255, 107, 26, 0.58);
+  box-shadow: 0 0 28px rgba(255, 107, 26, 0.22);
+}
+
+.chart-tooltip strong {
+  color: var(--accent);
+}
+
+.axis-track,
+.meter {
+  background: rgba(57, 255, 90, 0.12);
+}
+
+.axis-segment {
+  border-right-color: rgba(5, 10, 7, 0.72);
+}
+
+.axis-marker {
+  background: var(--warning);
+  box-shadow: 0 0 0 2px #050706, 0 0 18px rgba(255, 107, 26, 0.68);
+}
+
+.axis-current {
+  background: var(--warning);
+  color: #090b07;
+}
+
+.meter span {
+  background: linear-gradient(90deg, #ff4f2e, #ff7a1a, #39ff5a);
+}
+
+.fear-fear,
+.forecast-neutral {
+  color: var(--warning);
+}
+
+.fear-greed,
+.fear-extreme-greed,
+.forecast-bullish {
+  color: var(--accent);
+}
+
+.forecast-bullish {
+  background: rgba(57, 255, 90, 0.14);
+}
+
+.forecast-neutral {
+  background: rgba(255, 122, 26, 0.16);
+}
+
+.forecast-bearish {
+  background: rgba(255, 79, 46, 0.16);
+  color: var(--danger);
+}
+
+.power-law-frame {
+  border-color: rgba(255, 107, 26, 0.48);
+  background: #050706;
 }

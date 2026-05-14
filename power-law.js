@@ -222,7 +222,7 @@
     deps.state.powerLaw.plot = { ...plot, startTime, endTime, minLog, maxLog };
 
     ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = "#050706";
     ctx.fillRect(0, 0, width, height);
     drawGrid(ctx, plot, width, height, minLog, maxLog, startTime, endTime);
 
@@ -240,17 +240,17 @@
       })),
     };
 
-    drawLine(ctx, deps.state.powerLaw.coords.model.map((point) => point.resistanceXY), "#8d00a8", 2);
-    drawLine(ctx, deps.state.powerLaw.coords.model.map((point) => point.fitXY), "#007f00", 2);
-    drawLine(ctx, deps.state.powerLaw.coords.model.map((point) => point.supportXY), "#e00000", 2);
-    drawLine(ctx, deps.state.powerLaw.coords.actual.map((point) => point.xy), "#f0aa00", 2.4);
+    drawLine(ctx, deps.state.powerLaw.coords.model.map((point) => point.resistanceXY), "#ff7a1a", 2);
+    drawLine(ctx, deps.state.powerLaw.coords.model.map((point) => point.fitXY), "#39ff5a", 2);
+    drawLine(ctx, deps.state.powerLaw.coords.model.map((point) => point.supportXY), "#ff4f2e", 2);
+    drawLine(ctx, deps.state.powerLaw.coords.actual.map((point) => point.xy), "#ffb000", 2.4);
     drawLegend(ctx, width, height);
     drawHover(ctx, plot);
   }
 
   function drawGrid(ctx, plot, width, height, minLog, maxLog, startTime, endTime) {
-    ctx.strokeStyle = "rgba(21, 23, 23, 0.16)";
-    ctx.fillStyle = "#151717";
+    ctx.strokeStyle = "rgba(57, 255, 90, 0.18)";
+    ctx.fillStyle = "#eaffda";
     ctx.font = "700 12px Inter, system-ui, sans-serif";
     ctx.textBaseline = "middle";
     for (let power = minLog; power <= maxLog; power += 1) {
@@ -278,7 +278,7 @@
     ctx.translate(18, (plot.top + plot.bottom) / 2);
     ctx.rotate(-Math.PI / 2);
     ctx.textAlign = "center";
-    ctx.fillStyle = "#65716d";
+    ctx.fillStyle = "#89b48f";
     ctx.fillText("USD", 0, 0);
     ctx.restore();
   }
@@ -298,17 +298,17 @@
 
   function drawLegend(ctx, width, height) {
     const items = [
-      ["Price end of day", "#f0aa00"],
-      ["Resistance", "#8d00a8"],
-      ["Linear regression fit", "#007f00"],
-      ["Support", "#e00000"],
+      ["Price end of day", "#ffb000"],
+      ["Resistance", "#ff7a1a"],
+      ["Linear regression fit", "#39ff5a"],
+      ["Support", "#ff4f2e"],
     ];
     const boxWidth = 235;
     const boxHeight = 104;
     const x = width - boxWidth - 28;
     const y = height - boxHeight - 66;
-    ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-    ctx.strokeStyle = "rgba(21, 23, 23, 0.18)";
+    ctx.fillStyle = "rgba(7, 13, 8, 0.92)";
+    ctx.strokeStyle = "rgba(57, 255, 90, 0.36)";
     ctx.fillRect(x, y, boxWidth, boxHeight);
     ctx.strokeRect(x, y, boxWidth, boxHeight);
     ctx.font = "700 13px Inter, system-ui, sans-serif";
@@ -322,7 +322,7 @@
       ctx.moveTo(x + 14, rowY);
       ctx.lineTo(x + 42, rowY);
       ctx.stroke();
-      ctx.fillStyle = "#151717";
+      ctx.fillStyle = "#eaffda";
       ctx.fillText(label, x + 52, rowY);
     });
   }
@@ -333,28 +333,28 @@
     ctx.beginPath();
     ctx.moveTo(x, plot.top);
     ctx.lineTo(x, plot.bottom);
-    ctx.strokeStyle = "rgba(21, 23, 23, 0.35)";
+    ctx.strokeStyle = "rgba(255, 122, 26, 0.45)";
     ctx.lineWidth = 1;
     ctx.stroke();
     [model.resistanceXY, model.fitXY, model.supportXY].forEach((xy) => {
       ctx.beginPath();
       ctx.arc(xy[0], xy[1], 4, 0, Math.PI * 2);
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = "#071009";
       ctx.fill();
     });
     if (actual?.xy) {
       ctx.beginPath();
       ctx.arc(actual.xy[0], actual.xy[1], 4.5, 0, Math.PI * 2);
-      ctx.fillStyle = "#f0aa00";
+      ctx.fillStyle = "#ffb000";
       ctx.fill();
     }
   }
 
   function drawPowerLawEmpty() {
     const { ctx, width, height } = setupCanvas();
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = "#050706";
     ctx.fillRect(0, 0, width, height);
-    ctx.fillStyle = "#151717";
+    ctx.fillStyle = "#39ff5a";
     ctx.font = "800 16px Inter, system-ui, sans-serif";
     ctx.textAlign = "center";
     ctx.fillText("暂无 Power Law 数据", width / 2, height / 2);

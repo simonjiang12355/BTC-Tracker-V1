@@ -8,7 +8,7 @@ A static Bitcoin dashboard that shows:
 - Fear & Greed sentiment
 - Long-term power law model
 - A heuristic summary view
-- A recent web-summary section for BTC forecasts
+- A daily refreshed web-summary section for BTC forecasts
 
 ## Deploy To GitHub Pages
 
@@ -21,6 +21,13 @@ Files:
 - `app.js`
 - `indicator-ui.js`
 - `power-law.js`
+- `forecasts.json`
+
+## Daily Forecast Refresh
+
+The BTC forecast section is powered by `forecasts.json`.
+
+When deployed to GitHub, `.github/workflows/update-forecasts.yml` runs once per day and uses `scripts/update-forecasts.mjs` to search Google News RSS for recent Bitcoin price predictions. It writes the latest 10 items into `forecasts.json`, and the deploy workflow republishes the site after the update commit.
 
 ## Option 1: Upload Directly
 
