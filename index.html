@@ -27,7 +27,7 @@
     <link rel="preconnect" href="https://assets.coingecko.com" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
-  <body>
+  <body data-ui="blue">
     <main class="shell">
       <section class="topbar" aria-labelledby="page-title">
         <div class="identity">
@@ -49,6 +49,14 @@
             <select id="currency" name="currency">
               <option value="usd" selected>USD</option>
               <option value="cny">CNY</option>
+            </select>
+          </label>
+          <label class="currency-picker ui-picker" for="ui-theme">
+            <span>UI</span>
+            <select id="ui-theme" name="ui-theme">
+              <option value="blue">Cyber Blue</option>
+              <option value="light">Glass Light</option>
+              <option value="terminal">Terminal</option>
             </select>
           </label>
           <button id="refresh" type="button">刷新</button>
@@ -138,7 +146,7 @@
               <p id="chart-range-label" class="eyebrow">7 days</p>
               <h2>价格走势</h2>
             </div>
-            <span id="trend-label" class="trend-label">--</span>
+            <div id="trend-label" class="trend-label chart-trend-summary">--</div>
           </div>
           <div class="range-tabs" aria-label="选择价格走势时间范围">
             <button class="range-tab" type="button" data-days="1">1天</button>
@@ -324,17 +332,50 @@
         <div class="section-head">
           <div>
             <p class="eyebrow">Web search</p>
-            <h2 id="search-title">BTC 价格预测每日刷新</h2>
+            <h2 id="search-title">BTC 最新新闻</h2>
           </div>
-          <span id="forecast-updated" class="trend-label">等待刷新...</span>
+          <div class="forecast-actions">
+            <span id="forecast-updated" class="trend-label">等待刷新...</span>
+            <button id="forecast-refresh" class="secondary-button" type="button">Refresh news</button>
+          </div>
         </div>
         <article class="panel search-panel">
           <p class="search-note">
-            以下内容每天由 GitHub Actions 自动抓取并更新，覆盖多个公开来源；每条都压缩为一句话，方便快速对比市场观点。
+            每次打开页面会自动抓取一次最新 BTC 新闻；如果即时抓取失败，则显示 GitHub Actions 每日更新的缓存版本。
           </p>
           <ul id="forecast-list" class="search-bullets">
-            <li>正在加载最新预测...</li>
+            <li>正在加载最新 BTC 新闻...</li>
           </ul>
+        </article>
+      </section>
+
+      <section class="weekly-sentiment-section" aria-labelledby="weekly-sentiment-title">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">News sentiment</p>
+            <h2 id="weekly-sentiment-title">每周新闻情绪检查</h2>
+          </div>
+          <span id="weekly-sentiment-updated" class="trend-label">等待刷新...</span>
+        </div>
+        <article class="panel weekly-sentiment-panel">
+          <p class="search-note">
+            每周抓取最新 100 条 BTC 新闻，并按标题和摘要判断 bullish、neutral、bearish。
+          </p>
+          <div class="weekly-sentiment-grid">
+            <div class="weekly-sentiment-item bullish">
+              <span>Bullish</span>
+              <strong id="weekly-bullish">--</strong>
+            </div>
+            <div class="weekly-sentiment-item neutral">
+              <span>Neutral</span>
+              <strong id="weekly-neutral">--</strong>
+            </div>
+            <div class="weekly-sentiment-item bearish">
+              <span>Bearish</span>
+              <strong id="weekly-bearish">--</strong>
+            </div>
+          </div>
+          <p id="weekly-sentiment-total" class="recommendation-note">等待每周情绪统计...</p>
         </article>
       </section>
 

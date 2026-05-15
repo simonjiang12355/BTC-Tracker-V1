@@ -1,0 +1,10 @@
+{
+  "updatedAt": "2026-05-14T00:00:00.000Z",
+  "source": "Seed data; GitHub Actions refreshes this file weekly from Google News RSS.",
+  "total": 0,
+  "counts": {
+    "bullish": 0,
+    "neutral": 0,
+    "bearish": 0
+  }
+}

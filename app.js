@@ -9,6 +9,7 @@ const COIN_METRICS_BASE =
   "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics";
 const FEAR_GREED_BASE = "https://api.alternative.me/fng/";
 const CACHE_PREFIX = "btc-tracker:v2:";
+const UI_THEME_KEY = "btc-tracker:ui-theme";
 const REFRESH_MS = 60_000;
 const DEFAULT_CHART_DAYS = 7;
 const MARKET_CACHE_TTL_MS = 30_000;
@@ -43,6 +44,7 @@ const state = {
 
 const els = {
   currency: document.querySelector("#currency"),
+  uiTheme: document.querySelector("#ui-theme"),
   refresh: document.querySelector("#refresh"),
   share: document.querySelector("#share"),
   shareStatus: document.querySelector("#share-status"),
@@ -93,8 +95,33 @@ const els = {
   recommendationSummary: document.querySelector("#recommendation-summary"),
   recommendationConfidence: document.querySelector("#recommendation-confidence"),
   forecastUpdated: document.querySelector("#forecast-updated"),
+  forecastRefresh: document.querySelector("#forecast-refresh"),
   forecastList: document.querySelector("#forecast-list"),
+  weeklySentimentUpdated: document.querySelector("#weekly-sentiment-updated"),
+  weeklyBullish: document.querySelector("#weekly-bullish"),
+  weeklyNeutral: document.querySelector("#weekly-neutral"),
+  weeklyBearish: document.querySelector("#weekly-bearish"),
+  weeklySentimentTotal: document.querySelector("#weekly-sentiment-total"),
 };
+
+function applyUiTheme(theme) {
+  const nextTheme = ["blue", "light", "terminal"].includes(theme) ? theme : "blue";
+  document.body.dataset.ui = nextTheme;
+  if (els.uiTheme) els.uiTheme.value = nextTheme;
+  try {
+    window.localStorage.setItem(UI_THEME_KEY, nextTheme);
+  } catch {
+    // Theme persistence is best effort.
+  }
+}
+
+function loadUiTheme() {
+  try {
+    return window.localStorage.getItem(UI_THEME_KEY) || "blue";
+  } catch {
+    return "blue";
+  }
+}
 
 const currencyMeta = {
   usd: { code: "USD", locale: "en-US" },
@@ -657,8 +684,16 @@ function renderPriceChart(result) {
   if (state.chartSeries.length) {
     const first = state.chartSeries[0].price;
     const last = state.chartSeries[state.chartSeries.length - 1].price;
-    els.trendLabel.textContent = `${chartMoney(first)} -> ${chartMoney(last)} · ${state.chartSource}`;
-    stampUpdated(els.trendLabel, state.chartSeries[state.chartSeries.length - 1].time);
+    const change = Number.isFinite(first) && first !== 0
+      ? ((last - first) / first) * 100
+      : null;
+    const updatedAt = state.chartSeries[state.chartSeries.length - 1].time;
+    const changeClass = change > 0 ? "up" : change < 0 ? "down" : "neutral";
+    els.trendLabel.innerHTML = `
+      <span class="chart-trend-prices">${chartMoney(first)} -> ${chartMoney(last)}</span>
+      <strong class="chart-trend-change ${changeClass}">${percent(change)}</strong>
+      <span class="chart-trend-updated">最后更新：${dateTime(updatedAt)}</span>
+    `;
   } else {
     els.trendLabel.textContent = "--";
   }
@@ -1065,7 +1100,7 @@ function drawChart(series) {
   state.chartCoords = coords;
 
   const gradient = ctx.createLinearGradient(0, padding.top, 0, height - padding.bottom);
-  gradient.addColorStop(0, rising ? "rgba(57, 255, 90, 0.28)" : "rgba(255, 79, 46, 0.24)");
+  gradient.addColorStop(0, "rgba(255, 122, 26, 0.28)");
   gradient.addColorStop(1, "rgba(7, 10, 7, 0)");
 
   ctx.beginPath();
@@ -1084,7 +1119,7 @@ function drawChart(series) {
     if (index === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   });
-  ctx.strokeStyle = rising ? "#39ff5a" : "#ff4f2e";
+  ctx.strokeStyle = "#ff7a1a";
   ctx.lineWidth = 3;
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
@@ -1093,7 +1128,7 @@ function drawChart(series) {
   const [lastX, lastY] = coords[coords.length - 1];
   ctx.beginPath();
   ctx.arc(lastX, lastY, 5, 0, Math.PI * 2);
-  ctx.fillStyle = rising ? "#22e84e" : "#ff4f2e";
+  ctx.fillStyle = "#ff7a1a";
   ctx.fill();
 
   if (Number.isInteger(state.hoverIndex) && coords[state.hoverIndex]) {
@@ -1110,7 +1145,7 @@ function drawChart(series) {
     ctx.fillStyle = "#071009";
     ctx.fill();
     ctx.lineWidth = 3;
-    ctx.strokeStyle = rising ? "#22e84e" : "#ff4f2e";
+    ctx.strokeStyle = "#ff7a1a";
     ctx.stroke();
   }
 }
@@ -1372,14 +1407,159 @@ function formatForecastDate(value) {
   return String(value).replaceAll("-", "/");
 }
 
+function decodeEntities(value = "") {
+  const textarea = document.createElement("textarea");
+  textarea.innerHTML = value;
+  return textarea.value;
+}
+
+function stripTags(value = "") {
+  return decodeEntities(String(value).replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
+}
+
+function classifyForecast(text) {
+  const lower = String(text).toLowerCase();
+  const bullishPatterns = [
+    /\brall(y|ies|ied)\b/, /\bsurge(s|d)?\b/, /\bjump(s|ed)?\b/, /\bgain(s|ed)?\b/,
+    /\brise(s|n)?\b/, /\bclimb(s|ed)?\b/, /\bsoar(s|ed)?\b/, /\bbull(s|ish)?\b/,
+    /\bbreakout\b/, /\brecord high\b/, /\ball[- ]time high\b/, /\binflow(s)?\b/,
+    /\bbuy(s|ing)?\b/, /\baccumulat(e|es|ed|ing)\b/, /\badoption\b/, /\bapproval\b/,
+    /\breserve\b/, /\btreasury\b/, /\binstitutional\b/, /\bdemand\b/, /\boptimis(m|tic)\b/,
+    /\bupside\b/, /\brecover(s|ed|y)?\b/, /\brebound(s|ed)?\b/, /\badd(s|ed)? bitcoin\b/,
+    /\braise(s|d)? target\b/, /\babove \$?\d+/,
+  ];
+  const bearishPatterns = [
+    /\bcrash(es|ed)?\b/, /\bdrop(s|ped)?\b/, /\bfall(s|en)?\b/, /\bplunge(s|d)?\b/,
+    /\bslump(s|ed)?\b/, /\bdecline(s|d)?\b/, /\bsell[- ]?off\b/, /\boutflow(s)?\b/,
+    /\bbear(s|ish)?\b/, /\brisk(s)?\b/, /\bhack(s|ed)?\b/, /\blawsuit(s)?\b/,
+    /\bban(s|ned)?\b/, /\bprobe(s)?\b/, /\bfraud\b/, /\bfear\b/, /\bliquidation(s)?\b/,
+    /\bloss(es)?\b/, /\bdownside\b/, /\bwarning\b/, /\bpressure\b/, /\bbelow \$?\d+/,
+    /\bfaces? (pressure|risk|probe|lawsuit)\b/, /\bcut(s)? target\b/,
+  ];
+  const bullish = bullishPatterns.reduce((score, pattern) => score + (pattern.test(lower) ? 1 : 0), 0);
+  const bearish = bearishPatterns.reduce((score, pattern) => score + (pattern.test(lower) ? 1 : 0), 0);
+  if (bullish > bearish) return "bullish";
+  if (bearish > bullish) return "bearish";
+  return "neutral";
+}
+
+function summarizeForecast(title, description) {
+  const base = stripTags(description || title);
+  const sentence = base.split(/(?<=[.!?])\s+/)[0] || stripTags(title);
+  return sentence.length > 180 ? `${sentence.slice(0, 177).trim()}...` : sentence;
+}
+
+function isRelevantForecast(item) {
+  const text = `${item.title} ${item.description}`.toLowerCase();
+  return (
+    /\b(bitcoin|btc)\b/.test(text) &&
+    /\b(news|market|price|etf|fund|mining|miner|regulation|policy|reserve|treasury|company|exchange|rally|crash|record|inflow|outflow|adoption|strategy)\b/.test(text)
+  );
+}
+
+function parseForecastRss(xmlText) {
+  const xml = new DOMParser().parseFromString(xmlText, "application/xml");
+  return [...xml.querySelectorAll("item")].map((item) => {
+    const link = item.querySelector("link")?.textContent?.trim() || "";
+    const source = item.querySelector("source")?.textContent?.trim() || (() => {
+      try {
+        return new URL(link).hostname.replace(/^www\./, "");
+      } catch {
+        return "Source";
+      }
+    })();
+    const pubDate = item.querySelector("pubDate")?.textContent?.trim();
+    const title = stripTags(item.querySelector("title")?.textContent || "");
+    const description = stripTags(item.querySelector("description")?.textContent || "");
+    return {
+      title,
+      description,
+      url: link,
+      source,
+      date: pubDate ? new Date(pubDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+    };
+  });
+}
+
+function pickLiveForecasts(items) {
+  const seenUrls = new Set();
+  const sourceCounts = new Map();
+  const selected = [];
+  const sorted = items
+    .filter(isRelevantForecast)
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  for (const item of sorted) {
+    if (!item.url || seenUrls.has(item.url)) continue;
+    const sourceKey = item.source.toLowerCase();
+    if ((sourceCounts.get(sourceKey) || 0) >= 2) continue;
+    seenUrls.add(item.url);
+    sourceCounts.set(sourceKey, (sourceCounts.get(sourceKey) || 0) + 1);
+    selected.push({
+      date: item.date,
+      source: item.source,
+      url: item.url,
+      summary: summarizeForecast(item.title, item.description),
+      stance: classifyForecast(`${item.title} ${item.description}`),
+    });
+    if (selected.length >= 10) break;
+  }
+
+  return selected;
+}
+
+async function fetchTextWithFallback(url) {
+  try {
+    const response = await fetch(url, { cache: "no-store" });
+    if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+    return response.text();
+  } catch (error) {
+    const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+    const response = await fetch(proxy, { cache: "no-store" });
+    if (!response.ok) throw error;
+    return response.text();
+  }
+}
+
+async function fetchLiveForecasts() {
+  const queries = [
+    "bitcoin OR BTC latest news when:7d",
+    "bitcoin ETF OR BTC ETF news when:7d",
+    "bitcoin market price news when:7d",
+    "bitcoin regulation mining company news when:7d",
+  ];
+  const results = [];
+
+  for (const query of queries) {
+    const url = new URL("https://news.google.com/rss/search");
+    url.searchParams.set("q", query);
+    url.searchParams.set("hl", "en-US");
+    url.searchParams.set("gl", "US");
+    url.searchParams.set("ceid", "US:en");
+    try {
+      results.push(...parseForecastRss(await fetchTextWithFallback(url.toString())));
+    } catch (error) {
+      console.warn("Live forecast search failed", error);
+    }
+  }
+
+  const forecasts = pickLiveForecasts(results);
+  if (!forecasts.length) throw new Error("No fresh BTC news results found.");
+  return {
+    updatedAt: new Date().toISOString(),
+    source: "Live Google News RSS",
+    forecasts,
+  };
+}
+
 function renderForecasts(payload) {
   const forecasts = Array.isArray(payload?.forecasts) ? payload.forecasts.slice(0, 10) : [];
   els.forecastUpdated.textContent = payload?.updatedAt
-    ? `每日刷新：${dateTime(payload.updatedAt)}`
+    ? `${payload.source?.startsWith("Live") ? "即时抓取" : "每日刷新"}：${dateTime(payload.updatedAt)}`
     : "每日刷新：等待数据";
 
   if (!forecasts.length) {
-    els.forecastList.innerHTML = "<li>暂时没有抓取到新的 BTC 价格预测。</li>";
+    els.forecastList.innerHTML = "<li>暂时没有抓取到新的 BTC 新闻。</li>";
     return;
   }
 
@@ -1393,7 +1573,7 @@ function renderForecasts(payload) {
         <a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">
           ${escapeHtml(formatForecastDate(item.date))} · ${escapeHtml(item.source || "Source")}
         </a>
-        ${escapeHtml(item.summary || item.title || "BTC price prediction")}
+        ${escapeHtml(item.summary || item.title || "BTC latest news")}
         <span class="forecast-tag forecast-${stance}">${label}</span>
       </li>
     `;
@@ -1410,7 +1590,119 @@ async function loadForecasts() {
     renderForecasts(await response.json());
   } catch (error) {
     els.forecastUpdated.textContent = "每日刷新：暂不可用";
-    els.forecastList.innerHTML = `<li>最新预测加载失败：${escapeHtml(error.message)}</li>`;
+    els.forecastList.innerHTML = `<li>最新新闻加载失败：${escapeHtml(error.message)}</li>`;
+  }
+}
+
+async function refreshForecastsNow() {
+  els.forecastRefresh.disabled = true;
+  els.forecastRefresh.textContent = "Refreshing...";
+  els.forecastUpdated.textContent = "即时新闻：抓取中...";
+  try {
+    renderForecasts(await fetchLiveForecasts());
+  } catch (error) {
+    els.forecastUpdated.textContent = "即时新闻：失败，显示每日版本";
+    await loadForecasts();
+  } finally {
+    els.forecastRefresh.disabled = false;
+    els.forecastRefresh.textContent = "Refresh news";
+  }
+}
+
+function renderWeeklySentiment(payload) {
+  const counts = payload?.counts || {};
+  const bullish = Number(counts.bullish) || 0;
+  const neutral = Number(counts.neutral) || 0;
+  const bearish = Number(counts.bearish) || 0;
+  const total = Number(payload?.total) || bullish + neutral + bearish;
+
+  els.weeklyBullish.textContent = total > 0 ? bullish : "--";
+  els.weeklyNeutral.textContent = total > 0 ? neutral : "--";
+  els.weeklyBearish.textContent = total > 0 ? bearish : "--";
+  els.weeklySentimentUpdated.textContent = payload?.updatedAt
+    ? `最近刷新：${dateTime(payload.updatedAt)}`
+    : "最近刷新：等待数据";
+  els.weeklySentimentTotal.textContent = total > 0
+    ? `分析样本：${number(total, false)} 条新闻 · Bullish ${bullish} · Neutral ${neutral} · Bearish ${bearish}`
+    : "等待首次每周新闻情绪分析。上传到 GitHub 后，可在 Actions 手动运行一次 Update Weekly BTC Sentiment。";
+}
+
+function pickSentimentItems(items) {
+  const seen = new Set();
+  return items
+    .filter(isRelevantForecast)
+    .filter((item) => {
+      if (!item.url || seen.has(item.url)) return false;
+      seen.add(item.url);
+      return true;
+    })
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 100);
+}
+
+async function fetchLiveWeeklySentiment() {
+  const queries = [
+    "bitcoin OR BTC latest news when:7d",
+    "bitcoin ETF OR BTC ETF news when:7d",
+    "bitcoin market price news when:7d",
+    "bitcoin regulation mining company news when:7d",
+    "bitcoin adoption treasury exchange news when:7d",
+  ];
+  const results = [];
+
+  for (const query of queries) {
+    const url = new URL("https://news.google.com/rss/search");
+    url.searchParams.set("q", query);
+    url.searchParams.set("hl", "en-US");
+    url.searchParams.set("gl", "US");
+    url.searchParams.set("ceid", "US:en");
+    try {
+      results.push(...parseForecastRss(await fetchTextWithFallback(url.toString())));
+    } catch (error) {
+      console.warn("Live sentiment search failed", error);
+    }
+  }
+
+  const items = pickSentimentItems(results);
+  if (!items.length) throw new Error("No fresh BTC news results found for sentiment.");
+
+  const counts = { bullish: 0, neutral: 0, bearish: 0 };
+  items.forEach((item) => {
+    counts[classifyForecast(`${item.title} ${item.description}`)] += 1;
+  });
+
+  return {
+    updatedAt: new Date().toISOString(),
+    source: "Live Google News RSS sentiment",
+    total: items.length,
+    counts,
+  };
+}
+
+async function refreshWeeklySentimentNow() {
+  els.weeklySentimentUpdated.textContent = "最近刷新：即时分析中...";
+  try {
+    renderWeeklySentiment(await fetchLiveWeeklySentiment());
+  } catch (error) {
+    els.weeklySentimentUpdated.textContent = "最近刷新：等待每周任务";
+    els.weeklySentimentTotal.textContent =
+      `即时新闻情绪分析失败：${error.message}。上传到 GitHub 后，可在 Actions 手动运行一次 Update Weekly BTC Sentiment。`;
+  }
+}
+
+async function loadWeeklySentiment() {
+  try {
+    const response = await fetch(`./sentiment.json?ts=${Date.now()}`, {
+      headers: { accept: "application/json" },
+      cache: "no-store",
+    });
+    if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+    const payload = await response.json();
+    renderWeeklySentiment(payload);
+    if (!Number(payload?.total)) refreshWeeklySentimentNow();
+  } catch (error) {
+    els.weeklySentimentUpdated.textContent = "最近刷新：暂不可用";
+    els.weeklySentimentTotal.textContent = `每周新闻情绪加载失败：${error.message}`;
   }
 }
 
@@ -1418,6 +1710,7 @@ function refreshDashboard() {
   loadBitcoin();
   window.BtcPowerLaw.load();
   loadForecasts();
+  loadWeeklySentiment();
 }
 
 window.BtcIndicatorUI.initialize({
@@ -1444,6 +1737,10 @@ window.BtcPowerLaw.initialize({
 
 els.refresh.addEventListener("click", refreshDashboard);
 els.share.addEventListener("click", sharePage);
+els.forecastRefresh.addEventListener("click", refreshForecastsNow);
+els.uiTheme.addEventListener("change", (event) => {
+  applyUiTheme(event.target.value);
+});
 els.currency.addEventListener("change", (event) => {
   state.currency = event.target.value;
   loadBitcoin();
@@ -1463,7 +1760,10 @@ window.addEventListener("resize", () => {
 });
 window.addEventListener("btc-power-law-updated", renderRecommendation);
 
+applyUiTheme(loadUiTheme());
 loadBitcoin();
 window.BtcPowerLaw.load();
 loadForecasts();
+refreshForecastsNow();
+loadWeeklySentiment();
 state.timer = window.setInterval(loadBitcoin, REFRESH_MS);

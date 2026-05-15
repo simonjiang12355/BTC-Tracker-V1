@@ -1,76 +1,76 @@
 {
-  "updatedAt": "2026-05-06T00:00:00.000Z",
-  "source": "Seed data; GitHub Actions refreshes this file daily from Google News RSS.",
+  "updatedAt": "2026-05-14T00:00:00.000Z",
+  "source": "Seed BTC news data; GitHub Actions refreshes this file daily from Google News RSS.",
   "forecasts": [
     {
-      "date": "2026-04-17",
-      "source": "Forbes",
-      "url": "https://www.forbes.com/sites/digital-assets/2026/04/17/banks-are-coming-wall-street-bitcoin-rush-targets-189k/",
-      "summary": "Citi's bull case points to about $189K as bank custody, ETF products, and institutional access keep expanding.",
-      "stance": "bullish"
-    },
-    {
-      "date": "2026-04-06",
-      "source": "Forbes",
-      "url": "https://www.forbes.com/sites/digital-assets/2026/04/06/bursting-bubble-bloomberg-warns-bitcoin-suddenly-faces-10000-crash/",
-      "summary": "Bloomberg Intelligence's Mike McGlone warns that a bubble unwind could send BTC toward $10K in a severe bear case.",
-      "stance": "bearish"
-    },
-    {
-      "date": "2026-04-21",
-      "source": "Cointelegraph",
-      "url": "https://cointelegraph.com/news/bitcoin-price-chart-targets-90k-aggressively-buy-on-binance",
-      "summary": "Short-term technical analysis says sustained aggressive buying could push BTC toward about $90K.",
-      "stance": "bullish"
-    },
-    {
-      "date": "2026-04-20",
-      "source": "Benzinga",
-      "url": "https://www.benzinga.com/crypto/cryptocurrency/26/04/51921688/bitcoin-could-run-to-95000-or-crash-to-70000-heres-what-technical-analysis-says/",
-      "summary": "DonAlt frames BTC as a conditional setup: hold key levels and run to $95K, or lose them and risk $70K.",
+      "date": "2026-05-14",
+      "source": "Google News RSS",
+      "url": "https://news.google.com/search?q=bitcoin%20latest%20news",
+      "summary": "Latest Bitcoin coverage will refresh automatically from Google News RSS when the page opens.",
       "stance": "neutral"
     },
     {
-      "date": "2026-04-15",
-      "source": "Decrypt",
-      "url": "https://decrypt.co/364423/bitcoin-etfs-draw-411m-after-btc-hits-75k-but-analysts-urge-caution/",
-      "summary": "Analysts cited by Decrypt say the bounce above $75K is helped by liquidity, but the market structure remains fragile.",
+      "date": "2026-05-14",
+      "source": "Google News RSS",
+      "url": "https://news.google.com/search?q=bitcoin%20ETF%20news",
+      "summary": "Bitcoin ETF headlines are tracked because inflows and outflows can quickly affect BTC market sentiment.",
       "stance": "neutral"
     },
     {
-      "date": "2026-04-17",
-      "source": "The Block",
-      "url": "https://www.theblock.co/post/397874/bitcoin-outlook-still-clouded-by-extreme-fear-amid-macro-uncertainty-and-profit-taking-despite-rally-to-76k-analysts-say",
-      "summary": "Analysts summarized by The Block say BTC near $76K is still clouded by extreme fear and profit-taking.",
+      "date": "2026-05-14",
+      "source": "Google News RSS",
+      "url": "https://news.google.com/search?q=bitcoin%20market%20price%20news",
+      "summary": "BTC market and price news is tracked to catch major rallies, selloffs, liquidity shifts, and trading updates.",
       "stance": "neutral"
     },
     {
-      "date": "2026-03-27",
-      "source": "Benzinga",
-      "url": "https://www.benzinga.com/crypto/cryptocurrency/26/03/51518339/bitcoin-next-stop-80k-or-60k-bitwise-analysts-just-made-their-bet/",
-      "summary": "Bitwise analysts lean toward BTC reaching $80K before $60K, because the bearish path would require a sharper shock.",
-      "stance": "bullish"
+      "date": "2026-05-14",
+      "source": "Google News RSS",
+      "url": "https://news.google.com/search?q=bitcoin%20regulation%20news",
+      "summary": "Bitcoin regulation and policy headlines are tracked because legal changes can reshape market risk.",
+      "stance": "neutral"
     },
     {
-      "date": "2026-03-30",
-      "source": "Decrypt",
-      "url": "https://decrypt.co/362696/bitcoin-etfs-bleed-290m-as-risk-off-mood-deepens",
-      "summary": "ETF outflows and macro risk leave analysts cautious about BTC valuation pressure.",
-      "stance": "bearish"
+      "date": "2026-05-14",
+      "source": "Google News RSS",
+      "url": "https://news.google.com/search?q=bitcoin%20mining%20news",
+      "summary": "Bitcoin mining news is tracked for hash rate, miner selling pressure, energy policy, and production updates.",
+      "stance": "neutral"
     },
     {
-      "date": "2026-04-10",
-      "source": "Cointelegraph",
-      "url": "https://cointelegraph.com/markets/bitcoin-analysis-sees-55k-btc-price-iron-bottom-by-december-2026/",
-      "summary": "CryptoQuant analysis sees a possible $55K iron bottom later in 2026.",
-      "stance": "bearish"
+      "date": "2026-05-14",
+      "source": "Google News RSS",
+      "url": "https://news.google.com/search?q=bitcoin%20treasury%20company%20news",
+      "summary": "Corporate Bitcoin treasury headlines are tracked because company purchases and sales can influence sentiment.",
+      "stance": "neutral"
     },
     {
-      "date": "2026-03-28",
-      "source": "Investing.com",
-      "url": "https://www.investing.com/analysis/bitcoin-price-tests-74k-after-8day-rally-and-28b-etf-inflows-200676727",
-      "summary": "Investing.com technical analysis treats BTC as a tactical buy if it breaks key levels toward the $80K-$84K zone.",
-      "stance": "bullish"
+      "date": "2026-05-14",
+      "source": "Google News RSS",
+      "url": "https://news.google.com/search?q=bitcoin%20exchange%20news",
+      "summary": "Exchange-related BTC headlines are tracked for liquidity, custody, listings, outages, and market access changes.",
+      "stance": "neutral"
+    },
+    {
+      "date": "2026-05-14",
+      "source": "Google News RSS",
+      "url": "https://news.google.com/search?q=bitcoin%20adoption%20news",
+      "summary": "Bitcoin adoption headlines are tracked because payment, custody, and institutional access can shift long-term demand.",
+      "stance": "neutral"
+    },
+    {
+      "date": "2026-05-14",
+      "source": "Google News RSS",
+      "url": "https://news.google.com/search?q=bitcoin%20macro%20news",
+      "summary": "Macro headlines involving rates, dollar strength, liquidity, and risk appetite are tracked for BTC context.",
+      "stance": "neutral"
+    },
+    {
+      "date": "2026-05-14",
+      "source": "Google News RSS",
+      "url": "https://news.google.com/search?q=bitcoin%20security%20news",
+      "summary": "Security and custody headlines are tracked because hacks, wallet issues, and exchange incidents can move sentiment.",
+      "stance": "neutral"
     }
   ]
 }

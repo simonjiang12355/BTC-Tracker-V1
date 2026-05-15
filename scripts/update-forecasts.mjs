@@ -2,10 +2,10 @@ import fs from "node:fs/promises";
 
 const OUTPUT = new URL("../forecasts.json", import.meta.url);
 const SEARCHES = [
-  "bitcoin price prediction OR forecast OR target when:30d",
-  "BTC price prediction analyst target when:30d",
-  "bitcoin price could reach target analyst when:30d",
-  "bitcoin price bearish forecast analyst when:30d",
+  "bitcoin OR BTC latest news when:7d",
+  "bitcoin ETF OR BTC ETF news when:7d",
+  "bitcoin market price news when:7d",
+  "bitcoin regulation mining company news when:7d",
 ];
 const MAX_PER_SOURCE = 2;
 const MAX_ITEMS = 10;
@@ -79,7 +79,7 @@ function isRelevant(item) {
   const text = `${item.title} ${item.description}`.toLowerCase();
   return (
     /\b(bitcoin|btc)\b/.test(text) &&
-    /\b(price|forecast|prediction|target|analyst|could|rally|crash|support|resistance)\b/.test(text)
+    /\b(news|market|price|etf|fund|mining|miner|regulation|policy|reserve|treasury|company|exchange|rally|crash|record|inflow|outflow|adoption|strategy)\b/.test(text)
   );
 }
 
@@ -144,16 +144,16 @@ for (const query of SEARCHES) {
 
 const forecasts = pickForecasts(results);
 if (!forecasts.length) {
-  throw new Error("No BTC forecasts found from Google News RSS.");
+  throw new Error("No BTC news found from Google News RSS.");
 }
 
 await fs.writeFile(
   OUTPUT,
   `${JSON.stringify({
     updatedAt: new Date().toISOString(),
-    source: "Google News RSS",
+    source: "Google News RSS latest BTC news",
     forecasts,
   }, null, 2)}\n`,
 );
 
-console.log(`Updated ${forecasts.length} BTC forecasts.`);
+console.log(`Updated ${forecasts.length} BTC news items.`);

@@ -8,7 +8,8 @@ A static Bitcoin dashboard that shows:
 - Fear & Greed sentiment
 - Long-term power law model
 - A heuristic summary view
-- A daily refreshed web-summary section for BTC forecasts
+- A latest BTC news section that refreshes on page load and has a daily GitHub Actions fallback
+- A weekly BTC news sentiment check across up to 100 recent headlines
 
 ## Deploy To GitHub Pages
 
@@ -23,11 +24,21 @@ Files:
 - `power-law.js`
 - `forecasts.json`
 
-## Daily Forecast Refresh
+## BTC News Refresh
 
-The BTC forecast section is powered by `forecasts.json`.
+The BTC news section is powered by `forecasts.json`.
 
-When deployed to GitHub, `.github/workflows/update-forecasts.yml` runs once per day and uses `scripts/update-forecasts.mjs` to search Google News RSS for recent Bitcoin price predictions. It writes the latest 10 items into `forecasts.json`, and the deploy workflow republishes the site after the update commit.
+When deployed to GitHub, `.github/workflows/update-forecasts.yml` runs once per day and uses `scripts/update-forecasts.mjs` to search Google News RSS for recent Bitcoin news. It writes the latest 10 items into `forecasts.json`, then deploys the site to GitHub Pages in the same workflow.
+
+When a user opens the page, the browser also tries to fetch fresh Bitcoin news immediately. If that live request is blocked or fails, the page keeps showing the daily `forecasts.json` cache.
+
+After the first upload, open the repository `Actions` tab and manually run `Update BTC Forecasts` once. After that, GitHub runs it daily on the default branch.
+
+## Weekly Sentiment Refresh
+
+The weekly sentiment section is powered by `sentiment.json`.
+
+`.github/workflows/update-sentiment.yml` runs once per week and uses `scripts/update-sentiment.mjs` to search Google News RSS for recent Bitcoin news. It analyzes up to 100 items and writes bullish, neutral, and bearish counts into `sentiment.json`, then redeploys GitHub Pages.
 
 ## Option 1: Upload Directly
 
